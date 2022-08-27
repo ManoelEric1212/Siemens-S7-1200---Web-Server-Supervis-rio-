@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>ETE 02</title>
+    
+	<script src="script/raphael-2.1.4.min.js"></script>
+    <script src="script/justgage.js"></script>	
+    <script src="script/jquery-3.2.1.min.js"></script>
+	<script src="code/highcharts.js"></script>
+	<script src="code/modules/exporting.js"></script>
+	<script src="code/modules/export-data.js"></script>
+	<script src="code/modules/accessibility.js"></script>
+	<link rel="stylesheet" href="style/mystyle.css"> 
+    <link rel="stylesheet" href="style/switch.css" type="text/css" media="screen" />
+    
+</head>
+<body>
+    <div class="areaprincipal">
+    <div id="container">
+        <div id="header">
+            <div class="title1">Sustentabilidade </div>
+            <div class="title2">Monitoramento de Vazão ETE</div>
+			<div align="right" id="DateNow">12:0:0 PM</div>
+        </div>	
+		
+        <div id="content">
+
+             <div id="pos2">						
+			</div> 
+			<div id = "container1" class = "contai"> </div>
+			<div align = "center"  id="pos4">										
+			</div>
+        </div>		
+		
+		</div>
+		<div id="footer">&copy;2022 Manutenção Corporativa / Novas Tecnologias</div>
+		</div>
+
+	<script>
+		(function() {
+		var $$ = function(selector) {
+				return Array.prototype.slice.call(document.querySelectorAll(selector));
+			}
+			document.addEventListener("DOMContentLoaded", function() {
+				
+				//--------------------------------------------------------------------------------------------------
+				var pos2 = new JustGage({
+				id: "pos2",
+				value: 0,
+				min: 0,
+				max: 37,
+				title: "Vazão Instantânea ETE 01",	
+				label: "Vazão",	
+				levelColors: ["#00fff6","#ff00fc","#1200ff"],				
+				textRenderer: customValue,
+				titleFontColor: "black",				
+				valueFontColor: "black",
+				labelFontColor: "black"				
+				});
+
+            	$.ajaxSetup({ cache: false });
+        		setInterval(function() {
+					url="IOServer.htm";
+            		$.getJSON(url, function(result){
+                	$('#Speed_PV_1').text(result["Speed_PV_1"]+ " m³/h");
+					$('#NoRun').text(result["No_Run"]);
+					pos2.refresh(result["Speed_PV"].trim());
+            		});
+					var d = new Date();
+					//var n = d.toLocaleDateString();
+					var m = d.toLocaleTimeString();
+					$('#DateNow').text(m);
+        		},500);
+        	
+			
+				function customValue(val) {				
+					
+					return (val)+" m³/h";
+					
+				}
+//-----------------------------------------------------------------------------------------------		
+
+				
+				
+				var charttT = new Highcharts.Chart({
+					chart: {
+						renderTo: 'container1',
+						type: 'line'
+					},
+					title: {
+						text: 'Vazão diária ETE'
+					},
+					subtitle: {
+					   // text: 'Source: WorldClimate.com'
+					},
+
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: false
+						}
+					},
+					series: [{
+						name: 'ETE 01',
+						color: '#b71c1c',
+						data: []
+						
+					}],
+					xAxis:{
+						type: 'datetime',
+						dateTimeLabelFormats: {second: '%H:%M:%S'}
+					},
+					yAxis:{
+						title:{text:'Vazão m³/h'}
+					},
+				});
+				    $.ajaxSetup({cache: false });
+					setInterval(function() {
+					$.getJSON("IOServer.htm", function(result){ 
+					var x = (new Date()).getTime();
+					var y = parseInt(result["Speed_PV"]);
+				if(charttT.series[0].data.length > 200){
+					charttT.series[0].addPoint([x,y], true,true,true);
+				} else{
+            		charttT.series[0].addPoint([x,y], true,false,true);
+				}
+        
+
+    });
+
+    }, 500);
+				
+				
+				
+				
+				
+		
+			}, false);
+		})()
+	</script>
+</body>
+</html>
